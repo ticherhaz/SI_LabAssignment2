@@ -80,7 +80,7 @@
                     Statement st = null;
                     ResultSet rs = null;
                     st = connection.createStatement();
-                    rs = st.executeQuery("SELECT bankName, interestRate FROM bank"); %>
+                    rs = st.executeQuery("SELECT bankName FROM bank"); %>
 
                 Select Bank  : <select  id="bankName" name="bankName"  onchange="displayInterestRate(this.value)">
                     <%while (rs.next()) {%>

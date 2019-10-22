@@ -6,15 +6,18 @@
 package net.ticherhaz.controller;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import net.ticherhaz.model.Bank;
 import net.ticherhaz.model.Common;
 import net.ticherhaz.model.Loan;
+import net.ticherhaz.database.DBConnectionManager;
 
 /**
  *
@@ -74,21 +77,27 @@ public class LoanServlet extends HttpServlet {
                 numberOfYear = Long.parseLong(request.getParameter(Common.NUMBER_OF_YEAR));
                 bankName = request.getParameter(Common.BANK_NAME);
 
+                double interestRate = DBConnectionManager.getInterestRateDB(bankName);
+
                 //Make calculation
-                Loan loan = new Loan(loanAmount, new Loan().calculation(Common.CALCULATOR, bankName, loanAmount, numberOfYear), numberOfYear, bankName);
-                Bank bank = new Bank();
+                Loan loan = new Loan(loanAmount, new Loan().calculation(Common.CALCULATOR, bankName, loanAmount, numberOfYear, interestRate), numberOfYear, bankName);
+                //Bank bank = new Bank();
 
                 //Add data in request
                 request.setAttribute(Common.LOAN, loan);
                 request.setAttribute(Common.BANK_NAME, bankName);
-                request.setAttribute(Common.INTEREST_RATE, bank.getValueInterestRate(bankName));
-                request.setAttribute(Common.MONTHLY_PAYMENT, new Loan().calculation(Common.MONTHLY_PAYMENT, bankName, loanAmount, numberOfYear));
+
+                request.setAttribute(Common.INTEREST_RATE, interestRate);
+
+                request.setAttribute(Common.MONTHLY_PAYMENT, new Loan().calculation(Common.MONTHLY_PAYMENT, bankName, loanAmount, numberOfYear, interestRate));
 
                 //Forward
                 RequestDispatcher rd = request.getRequestDispatcher(Common.PAGE_RESULT);
                 rd.forward(request, response);
             } catch (NumberFormatException ex) {
                 notNumberType(request, response);
+            } catch (ClassNotFoundException | SQLException ex) {
+                Logger.getLogger(LoanServlet.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
